@@ -14,6 +14,7 @@ import Notifications from "./pages/Notifications";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from "react-toastify";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -26,9 +27,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
 
   if (!isAuthenticated) {
-    toast.warn('Please login or sign up to access this page.', {
+    toast.warn('Please Login or Sign Up First', {
       position: 'top-right',
-      autoClose: 5000,
+      autoClose: 4000,
     });
     return <Navigate to="/feeds" replace />;
   }

@@ -50,10 +50,10 @@ const Signup = () => {
         {/* Logo and Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 social-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-2xl">S</span>
+            <span className="text-white font-bold text-2xl">N</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-          <p className="text-gray-600">Join our community today</p>
+          <p className="text-blue-600 font-bold text-lg">Join Nailoul Houda community today</p>
         </div>
 
         {/* Signup Form */}

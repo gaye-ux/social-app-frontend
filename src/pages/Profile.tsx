@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Camera, Edit3, MapPin, Calendar, Link as LinkIcon, MoreHorizontal, LogOut
 } from 'lucide-react';
@@ -13,9 +13,31 @@ const Profile = () => {
   const userName = localStorage.getItem('userName') || 'User';
   const userEmail = localStorage.getItem('userEmail') || '';
 
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+
+  const profileInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
   const handleLogout = () => {
     localStorage.clear();
     navigate('/feeds');
+  };
+
+  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setProfileImage(url);
+    }
+  };
+
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setCoverImage(url);
+    }
   };
 
   const mockUserPosts: Post[] = [
@@ -25,7 +47,7 @@ const Profile = () => {
         id: 'current-user',
         name: userName,
         avatar: '',
-        username: userEmail.split('@')[0]
+        username: userName
       },
       content: 'Working on some exciting new features for our social platform! 🚀',
       timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
@@ -48,23 +70,50 @@ const Profile = () => {
       <div className="social-card p-4 sm:p-8 mb-6">
         <div className="relative">
           {/* Cover Photo */}
-          <div className="h-40 sm:h-48 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg mb-4 relative">
-            <button className="absolute top-4 right-4 p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
+          <div className="h-40 sm:h-48 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg mb-4 relative overflow-hidden">
+            {coverImage && (
+              <img src={coverImage} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
+            )}
+            <button
+              onClick={() => coverInputRef.current?.click()}
+              className="absolute top-4 right-4 p-2 bg-blue-300 rounded-full hover:bg-blue-100 transition"
+            >
               <Camera className="w-5 h-5 text-white" />
             </button>
+            <input
+              type="file"
+              accept="image/*"
+              ref={coverInputRef}
+              onChange={handleCoverChange}
+              className="hidden"
+            />
           </div>
 
           {/* Profile Picture */}
           <div className="absolute -bottom-12 left-4 sm:left-8">
             <div className="relative">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                <span className="text-white font-bold text-2xl sm:text-3xl">
-                  {userName.charAt(0)}
-                </span>
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center border-4 border-white shadow-lg overflow-hidden">
+                {profileImage ? (
+                  <img src={profileImage} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                ) : (
+                  <span className="text-white font-bold text-2xl sm:text-3xl">
+                    {userName.charAt(0)}
+                  </span>
+                )}
               </div>
-              <button className="absolute bottom-0 right-0 p-2 bg-blue-600 rounded-full text-white hover:bg-blue-700 transition">
+              <button
+                onClick={() => profileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 p-2 bg-blue-600 rounded-full text-white hover:bg-blue-700 transition"
+              >
                 <Camera className="w-4 h-4" />
               </button>
+              <input
+                type="file"
+                accept="image/*"
+                ref={profileInputRef}
+                onChange={handleProfileChange}
+                className="hidden"
+              />
             </div>
           </div>
         </div>
@@ -78,10 +127,13 @@ const Profile = () => {
                 <Edit3 className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-gray-600 mb-3 text-sm">@{userEmail.split('@')[0]}</p>
-            <p className="text-gray-800 mb-4 text-sm">
-              Digital creator passionate about technology and innovation. 
-              Building the future one post at a time! 🚀
+            {userEmail ? (
+              <p className="text-gray-600 mb-3 text-sm">@{userEmail.split('@')[0]}</p>
+            ) : (
+              <p>@{userName.split(' ')}</p>
+            )}
+            <p className="text-blue-800 mb-4 text-lg">
+              A Passionate Nailoul Houda Member
             </p>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 text-sm text-gray-600 mb-4 space-y-2 sm:space-y-0">
