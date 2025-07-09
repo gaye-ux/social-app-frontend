@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Image, Video, Smile, Send } from 'lucide-react';
 import { Post } from '../types';
@@ -32,7 +31,6 @@ const PostCreator: React.FC<PostCreatorProps> = ({ onPostCreated }) => {
 
     setIsPosting(true);
 
-    // Simulate API call
     setTimeout(() => {
       const newPost = {
         author: {
@@ -54,46 +52,49 @@ const PostCreator: React.FC<PostCreatorProps> = ({ onPostCreated }) => {
   };
 
   return (
-    <div className="social-card p-6">
+    <div className="social-card p-4 sm:p-6">
       <form onSubmit={handleSubmit}>
-        <div className="flex space-x-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Avatar */}
           <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-semibold text-sm">
-              {userName.charAt(0)}
-            </span>
+            <span className="text-white font-semibold text-sm">{userName.charAt(0)}</span>
           </div>
-          
+
+          {/* Post Input Area */}
           <div className="flex-1">
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="What's on your mind?"
-              className="w-full p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+              className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 text-sm"
               rows={3}
             />
 
+            {/* Image Preview */}
             {selectedImage && (
               <div className="mt-4 relative">
                 <img
                   src={selectedImage}
                   alt="Selected upload"
-                  className="max-h-64 rounded-lg object-cover"
+                  className="max-h-64 rounded-lg object-cover w-full"
                 />
                 <button
                   type="button"
                   onClick={() => setSelectedImage(null)}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors duration-200"
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition"
                 >
                   ×
                 </button>
               </div>
             )}
 
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center space-x-4">
-                <label className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors duration-200">
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 gap-3">
+              <div className="flex items-center flex-wrap gap-2">
+                {/* Photo Upload */}
+                <label className="flex items-center gap-1 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer transition text-sm">
                   <Image className="w-5 h-5" />
-                  <span className="text-sm font-medium">Photo</span>
+                  <span className="hidden xs:inline">Photo</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -102,30 +103,33 @@ const PostCreator: React.FC<PostCreatorProps> = ({ onPostCreated }) => {
                   />
                 </label>
 
+                {/* Video (non-functional placeholder) */}
                 <button
                   type="button"
-                  className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                  className="flex items-center gap-1 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm transition"
                 >
                   <Video className="w-5 h-5" />
-                  <span className="text-sm font-medium">Video</span>
+                  <span className="hidden xs:inline">Video</span>
                 </button>
 
+                {/* Feeling */}
                 <button
                   type="button"
-                  className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                  className="flex items-center gap-1 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm transition"
                 >
                   <Smile className="w-5 h-5" />
-                  <span className="text-sm font-medium">Feeling</span>
+                  <span className="hidden xs:inline">Feeling</span>
                 </button>
               </div>
 
+              {/* Post Button */}
               <button
                 type="submit"
                 disabled={(!content.trim() && !selectedImage) || isPosting}
-                className="flex items-center space-x-2 social-button disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 self-end sm:self-auto px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isPosting ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
@@ -133,7 +137,8 @@ const PostCreator: React.FC<PostCreatorProps> = ({ onPostCreated }) => {
               </button>
             </div>
 
-            <div className="mt-2 text-xs text-yellow-600 bg-yellow-50 p-2 rounded">
+            {/* Info Note */}
+            <div className="mt-3 text-xs text-yellow-600 bg-yellow-50 p-2 rounded">
               ℹ️ Your post will be submitted for admin approval before being published.
             </div>
           </div>
