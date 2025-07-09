@@ -21,7 +21,7 @@ const AudioComments: React.FC<AudioCommentsProps> = ({ postId }) => {
   const [recordingTime, setRecordingTime] = useState(0);
   const [comments, setComments] = useState<AudioComment[]>([]);
   const [textComment, setTextComment] = useState('');
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -29,8 +29,7 @@ const AudioComments: React.FC<AudioCommentsProps> = ({ postId }) => {
   const userName = localStorage.getItem('userName') || 'Anonymous';
 
   useEffect(() => {
-    // Mock existing audio comments
-    const mockComments: AudioComment[] = [
+    setComments([
       {
         id: '1',
         author: 'Sarah J.',
@@ -39,8 +38,7 @@ const AudioComments: React.FC<AudioCommentsProps> = ({ postId }) => {
         timestamp: new Date(Date.now() - 30 * 60 * 1000),
         expiresAt: new Date(Date.now() + 47.5 * 60 * 60 * 1000)
       }
-    ];
-    setComments(mockComments);
+    ]);
   }, []);
 
   const startRecording = async () => {
@@ -64,12 +62,10 @@ const AudioComments: React.FC<AudioCommentsProps> = ({ postId }) => {
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
-
       recordingIntervalRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
     } catch (error) {
-      console.error('Error accessing microphone:', error);
       alert('Unable to access microphone. Please check your permissions.');
     }
   };
@@ -78,9 +74,7 @@ const AudioComments: React.FC<AudioCommentsProps> = ({ postId }) => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-      }
+      if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
     }
   };
 
@@ -93,22 +87,22 @@ const AudioComments: React.FC<AudioCommentsProps> = ({ postId }) => {
   const submitAudioComment = () => {
     if (!audioBlob) return;
 
-    const newComment: AudioComment = {
-      id: Date.now().toString(),
-      author: userName,
-      audioUrl: audioUrl!,
-      duration: recordingTime,
-      timestamp: new Date(),
-      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000) // 48 hours from now
-    };
-
-    setComments([...comments, newComment]);
+    setComments([
+      ...comments,
+      {
+        id: Date.now().toString(),
+        author: userName,
+        audioUrl: audioUrl!,
+        duration: recordingTime,
+        timestamp: new Date(),
+        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000)
+      }
+    ]);
     discardRecording();
   };
 
   const submitTextComment = () => {
     if (!textComment.trim()) return;
-    
     console.log('Text comment submitted:', textComment);
     setTextComment('');
   };
@@ -120,9 +114,7 @@ const AudioComments: React.FC<AudioCommentsProps> = ({ postId }) => {
   };
 
   const getTimeUntilExpiry = (expiresAt: Date) => {
-    const now = new Date();
-    const diff = expiresAt.getTime() - now.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const hours = Math.floor((expiresAt.getTime() - new Date().getTime()) / (1000 * 60 * 60));
     return `${hours}h remaining`;
   };
 
@@ -131,41 +123,39 @@ const AudioComments: React.FC<AudioCommentsProps> = ({ postId }) => {
       <h4 className="font-semibold text-gray-900">Comments</h4>
 
       {/* Text Comment Input */}
-      <div className="flex space-x-3">
-        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-          <span className="text-white font-semibold text-xs">
-            {userName.charAt(0)}
-          </span>
+      <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-2 sm:space-y-0">
+        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-xs shrink-0">
+          {userName.charAt(0)}
         </div>
-        <div className="flex-1 flex space-x-2">
+        <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
           <input
             type="text"
             value={textComment}
             onChange={(e) => setTextComment(e.target.value)}
             placeholder="Write a comment..."
-            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
           <button
             onClick={submitTextComment}
             disabled={!textComment.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
           >
             <Send className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Audio Recording Section */}
+      {/* Voice Recording */}
       <div className="bg-gray-50 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-gray-700">Voice Comment</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 text-sm text-gray-700 gap-1">
+          <span className="font-medium">Voice Comment</span>
           <span className="text-xs text-gray-500">Auto-deletes in 48 hours</span>
         </div>
 
         {!isRecording && !audioUrl && (
           <button
             onClick={startRecording}
-            className="flex items-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
+            className="w-full sm:w-auto flex items-center justify-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
           >
             <Mic className="w-4 h-4" />
             <span>Start Recording</span>
@@ -173,16 +163,14 @@ const AudioComments: React.FC<AudioCommentsProps> = ({ postId }) => {
         )}
 
         {isRecording && (
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-red-600">
-                Recording... {formatTime(recordingTime)}
-              </span>
+              <span className="text-sm font-medium text-red-600">Recording... {formatTime(recordingTime)}</span>
             </div>
             <button
               onClick={stopRecording}
-              className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors duration-200"
+              className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm"
             >
               Stop
             </button>
@@ -190,22 +178,22 @@ const AudioComments: React.FC<AudioCommentsProps> = ({ postId }) => {
         )}
 
         {audioUrl && (
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <audio ref={audioRef} src={audioUrl} className="flex-1" controls />
+          <div className="space-y-3 mt-3">
+            <div className="flex flex-col sm:flex-row items-center sm:space-x-3 space-y-2 sm:space-y-0">
+              <audio ref={audioRef} src={audioUrl} className="w-full" controls />
               <span className="text-sm text-gray-600">{formatTime(recordingTime)}</span>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={submitAudioComment}
-                className="flex items-center space-x-1 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors duration-200"
+                className="flex items-center space-x-1 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
               >
                 <Send className="w-3 h-3" />
                 <span>Send</span>
               </button>
               <button
                 onClick={discardRecording}
-                className="flex items-center space-x-1 px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 transition-colors duration-200"
+                className="flex items-center space-x-1 px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
               >
                 <Trash2 className="w-3 h-3" />
                 <span>Discard</span>
@@ -215,18 +203,16 @@ const AudioComments: React.FC<AudioCommentsProps> = ({ postId }) => {
         )}
       </div>
 
-      {/* Existing Comments */}
+      {/* Existing Audio Comments */}
       <div className="space-y-3">
         {comments.map((comment) => (
           <div key={comment.id} className="flex space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-semibold text-xs">
-                {comment.author.charAt(0)}
-              </span>
+            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-xs shrink-0">
+              {comment.author.charAt(0)}
             </div>
             <div className="flex-1">
               <div className="bg-gray-100 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
                   <span className="font-medium text-sm text-gray-900">{comment.author}</span>
                   <span className="text-xs text-red-500">{getTimeUntilExpiry(comment.expiresAt)}</span>
                 </div>
