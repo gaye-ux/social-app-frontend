@@ -15,7 +15,7 @@ const Profile = () => {
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate('/login');
+    navigate('/feeds');
   };
 
   const mockUserPosts: Post[] = [

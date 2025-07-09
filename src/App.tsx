@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,14 +11,31 @@ import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import UploadRequest from "./pages/UploadRequest";
 import Notifications from "./pages/Notifications";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
 
 const queryClient = new QueryClient();
 
 // Protected Route Component
+// const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+//   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+//   return isAuthenticated ? <>{children}</> : <Navigate to="/feeds" replace />;
+// };
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+
+  if (!isAuthenticated) {
+    toast.warn('Please login or sign up to access this page.', {
+      position: 'top-right',
+      autoClose: 5000,
+    });
+    return <Navigate to="/feeds" replace />;
+  }
+
+  return <>{children}</>;
 };
+
 
 // Admin Route Component
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
@@ -27,7 +43,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const userRole = localStorage.getItem('userRole');
   
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/feeds" replace />;
   }
   
   if (userRole !== 'admin') {
@@ -42,6 +58,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <ToastContainer />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
@@ -58,6 +75,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/feeds" element={<Feed />} />
             <Route
               path="profile"
               element={
@@ -132,6 +150,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+  
 );
 
 export default App;
