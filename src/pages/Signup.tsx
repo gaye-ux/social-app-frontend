@@ -1,12 +1,15 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Phone, Lock, User } from 'lucide-react';
+import 'react-phone-input-2/lib/style.css';
+import PhoneInput from 'react-phone-input-2';
+
 
 const Signup = () => {
   const [formData, setFormData] = useState({
     fullName: '',
-    email: '',
+    phoneNo: '',
     password: '',
     confirmPassword: ''
   });
@@ -22,9 +25,10 @@ const Signup = () => {
     });
   };
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match');
       return;
@@ -36,9 +40,9 @@ const Signup = () => {
     setTimeout(() => {
       localStorage.setItem('userRole', 'user');
       localStorage.setItem('userName', formData.fullName);
-      localStorage.setItem('userEmail', formData.email);
+      localStorage.setItem('userPhoneNo', formData.phoneNo);
       localStorage.setItem('isAuthenticated', 'true');
-      
+
       setIsLoading(false);
       navigate('/');
     }, 1000);
@@ -79,20 +83,23 @@ const Signup = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                Phone Number
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="social-input pl-12"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
+              <PhoneInput
+                country={'gm'}
+                value={formData.phoneNo}
+                onChange={(phone) => {
+                  const formatted = phone.startsWith('+') ? phone.replace('+', '00') : phone;
+                  setFormData({ ...formData, phoneNo: formatted });
+                }}
+                placeholder='Enter phone number'
+                inputClass="social-input !pl-12"
+                buttonClass="!left-0"
+                inputProps={{
+                  name: 'phoneNo',
+                  required: true,
+                }}
+              />
             </div>
 
             <div>

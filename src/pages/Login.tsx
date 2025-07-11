@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Phone, Lock } from 'lucide-react';
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    phoneNo: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -26,14 +26,14 @@ const Login = () => {
     // Simulate API call
     setTimeout(() => {
       // Mock authentication
-      if (formData.email === 'admin@social.com') {
+      if (formData.phoneNo === 'admin@social.com') {
         localStorage.setItem('userRole', 'admin');
         localStorage.setItem('userName', 'Admin User');
       } else {
         localStorage.setItem('userRole', 'user');
         localStorage.setItem('userName', 'Regular User');
       }
-      localStorage.setItem('userEmail', formData.email);
+      localStorage.setItem('userPhoneNo', formData.phoneNo);
       localStorage.setItem('isAuthenticated', 'true');
       
       setIsLoading(false);
@@ -58,17 +58,17 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                Phone Number
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                  type="number"
+                  name="phoneNo"
+                  value={formData.phoneNo}
                   onChange={handleChange}
                   className="social-input pl-12"
-                  placeholder="Enter your email"
+                  placeholder="Enter your phone number"
                   required
                 />
               </div>

@@ -3,10 +3,12 @@ export interface User {
   id: string;
   name: string;
   username: string;
-  email: string;
+  phoneNo: number;
   avatar: string;
   role: 'user' | 'admin';
   createdAt: Date;
+  profile_photo_url: String;
+  cover_photo_url: String;
 }
 
 export interface Post {
