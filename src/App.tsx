@@ -14,7 +14,6 @@ import Notifications from "./pages/Notifications";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from "react-toastify";
-import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
