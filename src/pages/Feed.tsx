@@ -8,7 +8,6 @@ const Feed = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading posts
     setTimeout(() => {
       const mockPosts: Post[] = [
         {

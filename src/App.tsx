@@ -17,11 +17,6 @@ import { ToastContainer } from "react-toastify";
 
 const queryClient = new QueryClient();
 
-// Protected Route Component
-// const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-//   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-//   return isAuthenticated ? <>{children}</> : <Navigate to="/feeds" replace />;
-// };
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
 
