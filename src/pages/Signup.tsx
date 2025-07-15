@@ -1,57 +1,92 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Phone, Lock, User } from 'lucide-react';
-import 'react-phone-input-2/lib/style.css';
-import PhoneInput from 'react-phone-input-2';
-
+import Cookies from 'js-cookie';
+import { useRegisterUserMutation } from '@/generated/graphql';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    fullName: '',
+    username: '',
     phoneNo: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [registerUser] = useRegisterUserMutation();
+
+  // Log renders to detect loops
+  useEffect(() => {
+    console.log('Signup component rendered');
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      setError('Passwords do not match');
+      return;
+    }
+
+    // Validate phoneNo
+    const phoneNumber = parseInt(formData.phoneNo);
+    if (isNaN(phoneNumber)) {
+      setError('Invalid phone number');
+      console.log('Invalid phone number:', formData.phoneNo);
       return;
     }
 
     setIsLoading(true);
+    setError(null);
 
-    // Simulate API call
-    setTimeout(() => {
-      localStorage.setItem('userRole', 'user');
-      localStorage.setItem('userName', formData.fullName);
-      localStorage.setItem('userPhoneNo', formData.phoneNo);
-      localStorage.setItem('isAuthenticated', 'true');
+    try {
+     
+      const { data, errors } = await registerUser({
+        variables: {
+          username: formData.username,
+          phoneNo: formData.phoneNo,
+          password: formData.password,
+        },
+      });
 
+
+      if (errors) {
+        throw new Error(errors[0]?.message || 'Registration failed');
+      }
+
+      if (data?.registerUser) {
+        Cookies.set('token', data.registerUser.token, { expires: 7 });
+        Cookies.set('userId', data.registerUser.user.id, { expires: 7 });
+        Cookies.set('username', data.registerUser.user.username, { expires: 7 });
+        Cookies.set('userPhoneNo', data.registerUser.user.phoneNo.toString(), { expires: 7 });
+        Cookies.set('userRole', data.registerUser.user.role, { expires: 7 });
+        Cookies.set('isAuthenticated', 'true', { expires: 7 });
+
+        navigate('/');
+      } else {
+        throw new Error('No user data returned');
+      }
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      setError(err.message || 'An error occurred during registration');
+    } finally {
       setIsLoading(false);
-      navigate('/');
-    }, 1000);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo and Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 social-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-2xl">N</span>
@@ -60,22 +95,26 @@ const Signup = () => {
           <p className="text-blue-600 font-bold text-lg">Join Nailoul Houda community today</p>
         </div>
 
-        {/* Signup Form */}
         <div className="social-card p-8">
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
+                Username
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  name="fullName"
-                  value={formData.fullName}
+                  name="username"
+                  value={formData.username}
                   onChange={handleChange}
                   className="social-input pl-12"
-                  placeholder="Enter your full name"
+                  placeholder="Enter your username"
                   required
                 />
               </div>
@@ -85,21 +124,18 @@ const Signup = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Phone Number
               </label>
-              <PhoneInput
-                country={'gm'}
-                value={formData.phoneNo}
-                onChange={(phone) => {
-                  const formatted = phone.startsWith('+') ? phone.replace('+', '00') : phone;
-                  setFormData({ ...formData, phoneNo: formatted });
-                }}
-                placeholder='Enter phone number'
-                inputClass="social-input !pl-12"
-                buttonClass="!left-0"
-                inputProps={{
-                  name: 'phoneNo',
-                  required: true,
-                }}
-              />
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  name="phoneNo"
+                  value={formData.phoneNo}
+                  onChange={handleChange}
+                  className="social-input pl-12"
+                  placeholder="Enter phone number"
+                  required
+                />
+              </div>
             </div>
 
             <div>
@@ -134,7 +170,7 @@ const Signup = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showPassword ? 'text' : 'password'}
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}

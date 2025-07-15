@@ -1,17 +1,19 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Camera, Edit3, MapPin, Calendar, Link as LinkIcon, MoreHorizontal, LogOut
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import PostCard from '../components/PostCard';
-import { Post } from '../types';
+import { useGetUserPostsQuery} from '@/generated/graphql';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState<'posts' | 'media' | 'likes'>('posts');
   const navigate = useNavigate();
 
-  const userName = localStorage.getItem('userName') || 'User';
-  const userEmail = localStorage.getItem('userEmail') || '';
+  const userName = Cookies.get('username') || 'User';
+  const userPhoneNo = Cookies.get('userPhoneNo') || '';
+  const userId = Cookies.get('userId') || '';
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [coverImage, setCoverImage] = useState<string | null>(null);
@@ -19,8 +21,19 @@ const Profile = () => {
   const profileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  // Fetch user posts
+  const { data, loading, error } = useGetUserPostsQuery({
+    variables: { userId },
+    skip: !userId, // Skip query if userId is not available
+  });
+
   const handleLogout = () => {
-    localStorage.clear();
+    Cookies.remove('token');
+    Cookies.remove('userId');
+    Cookies.remove('username');
+    Cookies.remove('userPhoneNo');
+    Cookies.remove('userRole');
+    Cookies.remove('isAuthenticated');
     navigate('/feeds');
   };
 
@@ -40,28 +53,20 @@ const Profile = () => {
     }
   };
 
-  const mockUserPosts: Post[] = [
-    {
-      id: 'user-1',
-      author: {
-        id: 'current-user',
-        name: userName,
-        avatar: '',
-        username: userName
-      },
-      content: 'Working on some exciting new features for our social platform! 🚀',
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-      likes: 12,
-      comments: 4,
-      shares: 2,
-      status: 'approved'
-    }
-  ];
+  // Map GraphQL posts to PostCard-compatible format
+  const userPosts = data?.getUserPosts?.map(post => ({
+   ...post,
+    timestamp: new Date(post.createdAt),
+    likes: 0, // Default if not in schema; update query if available
+    comments: post.comments || [],
+    shares: 0, 
+    status: post.status === null ? "approved" : post.status
+  })) || [];
 
   const tabs = [
-    { id: 'posts', label: 'Posts', count: mockUserPosts.length },
-    { id: 'media', label: 'Media', count: 5 },
-    { id: 'likes', label: 'Liked', count: 23 }
+    { id: 'posts', label: 'Posts', count: userPosts.length },
+    { id: 'media', label: 'Media', count: 5 }, // Static for now
+    { id: 'likes', label: 'Liked', count: 20 }, // Static for now
   ];
 
   return (
@@ -127,10 +132,10 @@ const Profile = () => {
                 <Edit3 className="w-4 h-4" />
               </button>
             </div>
-            {userEmail ? (
-              <p className="text-gray-600 mb-3 text-sm">@{userEmail.split('@')[0]}</p>
+            {userPhoneNo ? (
+              <p className="text-gray-600 mb-3 text-sm">@{userPhoneNo}</p>
             ) : (
-              <p>@{userName.split(' ')}</p>
+              <p className="text-gray-600 mb-3 text-sm">@{userName.toLowerCase().replace(/\s+/g, '')}</p>
             )}
             <p className="text-blue-800 mb-4 text-lg">
               A Passionate Nailoul Houda Member
@@ -205,10 +210,22 @@ const Profile = () => {
       <div className="space-y-6">
         {activeTab === 'posts' && (
           <>
-            {mockUserPosts.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))}
-            {mockUserPosts.length === 0 && (
+            {loading && (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">Loading posts...</p>
+              </div>
+            )}
+            {error && (
+              <div className="text-center py-12">
+                <p className="text-red-500 text-lg">Error loading posts: {error.message}</p>
+              </div>
+            )}
+            {!loading && !error && userPosts.length > 0 && (
+              userPosts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))
+            )}
+            {!loading && !error && userPosts.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">No posts yet</p>
                 <p className="text-gray-400">Share your first post to get started!</p>

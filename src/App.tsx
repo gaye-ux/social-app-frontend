@@ -1,8 +1,10 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Cookies from 'js-cookie';
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -11,41 +13,32 @@ import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import UploadRequest from "./pages/UploadRequest";
 import Notifications from "./pages/Notifications";
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer } from "react-toastify";
 
-//query client initializer 
+// Query client initializer 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const isAuthenticated = Cookies.get('isAuthenticated') === 'true';
 
   if (!isAuthenticated) {
-    toast.warn('Please Login or Sign Up First', {
-      position: 'top-right',
-      autoClose: 4000,
-    });
-    return <Navigate to="/feeds" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
 };
 
-
-// Admin Route Component
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  const userRole = localStorage.getItem('userRole');
-  
+  const isAuthenticated = Cookies.get('isAuthenticated') === 'true';
+  const userRole = Cookies.get('userRole');
+
   if (!isAuthenticated) {
-    return <Navigate to="/feeds" replace />;
+    return <Navigate to="/login" replace />;
   }
-  
+
   if (userRole !== 'admin') {
     return <Navigate to="/" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
@@ -54,14 +47,14 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <ToastContainer />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
             {/* Public Routes */}
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<Signup />} />
-            
+            <Route path="feeds" element={<Feed />} />
+
             {/* Protected Routes */}
             <Route
               index
@@ -71,7 +64,6 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route path="/feeds" element={<Feed />} />
             <Route
               path="profile"
               element={
@@ -96,7 +88,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            
+
             {/* Admin Routes */}
             <Route
               path="admin"
@@ -106,7 +98,7 @@ const App = () => (
                 </AdminRoute>
               }
             />
-            
+
             {/* Placeholder routes */}
             <Route
               path="comments"
@@ -146,7 +138,6 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-  
 );
 
 export default App;

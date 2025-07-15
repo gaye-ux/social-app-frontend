@@ -5,13 +5,15 @@ import {
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Sidebar from './Sidebar'; // for mobile drawer
+import Cookies from 'js-cookie';
+
 
 const TopNavbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const userName = localStorage.getItem('userName') || 'User';
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const userName = Cookies.get('username') || 'User';
+  const isAuthenticated = Cookies.get('isAuthenticated') === 'true';
   const isMobile = useIsMobile();
 
   const handleLogout = () => {

@@ -1,0 +1,28 @@
+query GetUserPosts($userId: ID!) {
+  getUserPosts(userId: $userId) {
+    id
+    caption
+    createdAt
+    status
+    user {
+      id
+      username
+      phoneNo
+      role
+      canUpload
+    }
+    media {
+      id
+      url
+      type
+      compressed
+    }
+    comments {
+      id
+      content
+      type
+      createdAt
+      expiresAt
+    }
+  }
+}

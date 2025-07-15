@@ -136,7 +136,7 @@ export type Users = {
   __typename?: 'Users';
   canUpload?: Maybe<Scalars['Boolean']['output']>;
   id: Scalars['ID']['output'];
-  phoneNo: Scalars['Int']['output'];
+  phoneNo: Scalars['String']['output'];
   role: Scalars['String']['output'];
   username: Scalars['String']['output'];
 };
