@@ -75,13 +75,13 @@ export type MutationCreatePostArgs = {
 
 export type MutationLoginArgs = {
   password: Scalars['String']['input'];
-  phoneNo: Scalars['Int']['input'];
+  phoneNo: Scalars['String']['input'];
 };
 
 
 export type MutationRegisterUserArgs = {
   password: Scalars['String']['input'];
-  phoneNo: Scalars['Int']['input'];
+  phoneNo: Scalars['String']['input'];
   username: Scalars['String']['input'];
 };
 
@@ -106,15 +106,29 @@ export type Post = {
   createdAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   media: Array<Maybe<Media>>;
+  status?: Maybe<PostStatus>;
   user: Users;
 };
+
+export enum PostStatus {
+  Approved = 'approved',
+  Pending = 'pending',
+  Rejected = 'rejected'
+}
 
 export type Query = {
   __typename?: 'Query';
   getAllPosts?: Maybe<Array<Maybe<Post>>>;
   getAllUsers?: Maybe<Array<Maybe<Users>>>;
+  getCommentsByPostId?: Maybe<Array<Maybe<Comment>>>;
   getNotifications?: Maybe<Array<Maybe<Notification>>>;
   getUserByPhoneNo?: Maybe<Users>;
+  getUserPosts?: Maybe<Array<Maybe<Post>>>;
+};
+
+
+export type QueryGetCommentsByPostIdArgs = {
+  postId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -125,6 +139,11 @@ export type QueryGetNotificationsArgs = {
 
 export type QueryGetUserByPhoneNoArgs = {
   phoneNo: Scalars['Int']['input'];
+};
+
+
+export type QueryGetUserPostsArgs = {
+  userId: Scalars['ID']['input'];
 };
 
 export type UploadRequest = {
@@ -139,7 +158,7 @@ export type Users = {
   __typename?: 'Users';
   canUpload?: Maybe<Scalars['Boolean']['output']>;
   id: Scalars['ID']['output'];
-  phoneNo: Scalars['Int']['output'];
+  phoneNo: Scalars['String']['output'];
   role: Scalars['String']['output'];
   username: Scalars['String']['output'];
 };
@@ -147,7 +166,31 @@ export type Users = {
 export type GetAllPostsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllPostsQuery = { __typename?: 'Query', getAllPosts?: Array<{ __typename?: 'Post', id: string, caption: string, createdAt: string, user: { __typename?: 'Users', id: string, username: string, phoneNo: number, role: string, canUpload?: boolean | null }, media: Array<{ __typename?: 'Media', id: string, url: string, type: string, compressed: boolean } | null>, comments?: Array<{ __typename?: 'Comment', id: string, content: string, type: string, createdAt: string, expiresAt?: string | null } | null> | null } | null> | null };
+export type GetAllPostsQuery = { __typename?: 'Query', getAllPosts?: Array<{ __typename?: 'Post', id: string, caption: string, createdAt: string, status?: PostStatus | null, user: { __typename?: 'Users', id: string, username: string, phoneNo: string, role: string, canUpload?: boolean | null }, media: Array<{ __typename?: 'Media', id: string, url: string, type: string, compressed: boolean } | null>, comments?: Array<{ __typename?: 'Comment', id: string, content: string, type: string, createdAt: string, expiresAt?: string | null } | null> | null } | null> | null };
+
+export type GetUserPostsQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type GetUserPostsQuery = { __typename?: 'Query', getUserPosts?: Array<{ __typename?: 'Post', id: string, caption: string, createdAt: string, status?: PostStatus | null, user: { __typename?: 'Users', id: string, username: string, phoneNo: string, role: string, canUpload?: boolean | null }, media: Array<{ __typename?: 'Media', id: string, url: string, type: string, compressed: boolean } | null>, comments?: Array<{ __typename?: 'Comment', id: string, content: string, type: string, createdAt: string, expiresAt?: string | null } | null> | null } | null> | null };
+
+export type LoginUserMutationVariables = Exact<{
+  phoneNo: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+}>;
+
+
+export type LoginUserMutation = { __typename?: 'Mutation', login?: { __typename?: 'AuthResponse', token: string, user: { __typename?: 'Users', id: string, username: string, phoneNo: string, role: string } } | null };
+
+export type RegisterUserMutationVariables = Exact<{
+  username: Scalars['String']['input'];
+  phoneNo: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+}>;
+
+
+export type RegisterUserMutation = { __typename?: 'Mutation', registerUser?: { __typename?: 'AuthResponse', token: string, user: { __typename?: 'Users', id: string, username: string, phoneNo: string, role: string } } | null };
 
 
 export const GetAllPostsDocument = gql`
@@ -156,6 +199,7 @@ export const GetAllPostsDocument = gql`
     id
     caption
     createdAt
+    status
     user {
       id
       username
@@ -211,3 +255,147 @@ export type GetAllPostsQueryHookResult = ReturnType<typeof useGetAllPostsQuery>;
 export type GetAllPostsLazyQueryHookResult = ReturnType<typeof useGetAllPostsLazyQuery>;
 export type GetAllPostsSuspenseQueryHookResult = ReturnType<typeof useGetAllPostsSuspenseQuery>;
 export type GetAllPostsQueryResult = Apollo.QueryResult<GetAllPostsQuery, GetAllPostsQueryVariables>;
+export const GetUserPostsDocument = gql`
+    query GetUserPosts($userId: ID!) {
+  getUserPosts(userId: $userId) {
+    id
+    caption
+    createdAt
+    status
+    user {
+      id
+      username
+      phoneNo
+      role
+      canUpload
+    }
+    media {
+      id
+      url
+      type
+      compressed
+    }
+    comments {
+      id
+      content
+      type
+      createdAt
+      expiresAt
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetUserPostsQuery__
+ *
+ * To run a query within a React component, call `useGetUserPostsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserPostsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserPostsQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetUserPostsQuery(baseOptions: Apollo.QueryHookOptions<GetUserPostsQuery, GetUserPostsQueryVariables> & ({ variables: GetUserPostsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserPostsQuery, GetUserPostsQueryVariables>(GetUserPostsDocument, options);
+      }
+export function useGetUserPostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserPostsQuery, GetUserPostsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserPostsQuery, GetUserPostsQueryVariables>(GetUserPostsDocument, options);
+        }
+export function useGetUserPostsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetUserPostsQuery, GetUserPostsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetUserPostsQuery, GetUserPostsQueryVariables>(GetUserPostsDocument, options);
+        }
+export type GetUserPostsQueryHookResult = ReturnType<typeof useGetUserPostsQuery>;
+export type GetUserPostsLazyQueryHookResult = ReturnType<typeof useGetUserPostsLazyQuery>;
+export type GetUserPostsSuspenseQueryHookResult = ReturnType<typeof useGetUserPostsSuspenseQuery>;
+export type GetUserPostsQueryResult = Apollo.QueryResult<GetUserPostsQuery, GetUserPostsQueryVariables>;
+export const LoginUserDocument = gql`
+    mutation LoginUser($phoneNo: String!, $password: String!) {
+  login(phoneNo: $phoneNo, password: $password) {
+    token
+    user {
+      id
+      username
+      phoneNo
+      role
+    }
+  }
+}
+    `;
+export type LoginUserMutationFn = Apollo.MutationFunction<LoginUserMutation, LoginUserMutationVariables>;
+
+/**
+ * __useLoginUserMutation__
+ *
+ * To run a mutation, you first call `useLoginUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoginUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loginUserMutation, { data, loading, error }] = useLoginUserMutation({
+ *   variables: {
+ *      phoneNo: // value for 'phoneNo'
+ *      password: // value for 'password'
+ *   },
+ * });
+ */
+export function useLoginUserMutation(baseOptions?: Apollo.MutationHookOptions<LoginUserMutation, LoginUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoginUserMutation, LoginUserMutationVariables>(LoginUserDocument, options);
+      }
+export type LoginUserMutationHookResult = ReturnType<typeof useLoginUserMutation>;
+export type LoginUserMutationResult = Apollo.MutationResult<LoginUserMutation>;
+export type LoginUserMutationOptions = Apollo.BaseMutationOptions<LoginUserMutation, LoginUserMutationVariables>;
+export const RegisterUserDocument = gql`
+    mutation RegisterUser($username: String!, $phoneNo: String!, $password: String!) {
+  registerUser(username: $username, phoneNo: $phoneNo, password: $password) {
+    token
+    user {
+      id
+      username
+      phoneNo
+      role
+    }
+  }
+}
+    `;
+export type RegisterUserMutationFn = Apollo.MutationFunction<RegisterUserMutation, RegisterUserMutationVariables>;
+
+/**
+ * __useRegisterUserMutation__
+ *
+ * To run a mutation, you first call `useRegisterUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRegisterUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [registerUserMutation, { data, loading, error }] = useRegisterUserMutation({
+ *   variables: {
+ *      username: // value for 'username'
+ *      phoneNo: // value for 'phoneNo'
+ *      password: // value for 'password'
+ *   },
+ * });
+ */
+export function useRegisterUserMutation(baseOptions?: Apollo.MutationHookOptions<RegisterUserMutation, RegisterUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RegisterUserMutation, RegisterUserMutationVariables>(RegisterUserDocument, options);
+      }
+export type RegisterUserMutationHookResult = ReturnType<typeof useRegisterUserMutation>;
+export type RegisterUserMutationResult = Apollo.MutationResult<RegisterUserMutation>;
+export type RegisterUserMutationOptions = Apollo.BaseMutationOptions<RegisterUserMutation, RegisterUserMutationVariables>;

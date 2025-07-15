@@ -1,5 +1,5 @@
-query GetAllPosts {
-    getAllPosts {
+mutation CreatePost($userId: ID!, $caption: String!, $mediaUrls: String){
+    createPost(userId: $userId, caption: $caption, mediaUrls: $mediaUrls) {
         id
         caption
         createdAt
@@ -9,20 +9,12 @@ query GetAllPosts {
             username
             phoneNo
             role
-            canUpload
         }
         media {
             id
             url
             type
             compressed
-        }
-        comments {
-            id
-            content
-            type
-            createdAt
-            expiresAt
         }
     }
 }

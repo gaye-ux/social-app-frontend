@@ -1,60 +1,110 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Phone, Lock } from 'lucide-react';
+import Cookies from 'js-cookie';
+import { useLoginUserMutation } from '@/generated/graphql';
 
 const Login = () => {
   const [formData, setFormData] = useState({
     phoneNo: '',
-    password: ''
+    password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [loginUser] = useLoginUserMutation();
+
+  // // Log renders to detect loops
+  // useEffect(() => {
+  //   console.log('Login component rendered');
+  // }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Mock authentication
-      if (formData.phoneNo === 'admin@social.com') {
-        localStorage.setItem('userRole', 'admin');
-        localStorage.setItem('userName', 'Admin User');
+    // Validate inputs
+    if (!formData.phoneNo || !formData.password) {
+      setError('Phone number and password are required');
+      return;
+    }
+
+    // Basic phone number validation (non-empty and reasonable length)
+    if (formData.phoneNo.length < 7) {
+      setError('Phone number must be at least 7 characters');
+      return;
+    }
+
+    // Optional: Validate phone number format (numeric only)
+    if (!/^\d+$/.test(formData.phoneNo)) {
+      setError('Phone number must contain only digits');
+      console.log('Invalid phone number format:', formData.phoneNo);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { data, errors } = await loginUser({
+        variables: {
+          phoneNo: formData.phoneNo,
+          password: formData.password,
+        },
+      });
+
+
+    
+      if (data?.login) {
+        Cookies.set('token', data.login.token, { expires: 7 });
+        Cookies.set('userId', data.login.user.id, { expires: 7 });
+        Cookies.set('username', data.login.user.username, { expires: 7 });
+        Cookies.set('userPhoneNo', data.login.user.phoneNo, { expires: 7 });
+        Cookies.set('userRole', data.login.user.role, { expires: 7 });
+        Cookies.set('isAuthenticated', 'true', { expires: 7 });
+
+        navigate('/');
       } else {
-        localStorage.setItem('userRole', 'user');
-        localStorage.setItem('userName', 'Regular User');
+        setError('No user data returned. Please try again');
       }
-      localStorage.setItem('userPhoneNo', formData.phoneNo);
-      localStorage.setItem('isAuthenticated', 'true');
+    } catch (err: any) {
+      // Handle unexpected errors (e.g., network issues, timeouts)
+      if (err.networkError) {
+        setError('Network error. Please check your connection and try again');
+      }
+      else {
+        setError("Invalid Phone number or Password")
+      }
       
+    } finally {
       setIsLoading(false);
-      navigate('/');
-    }, 1000);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo and Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 social-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-2xl">S</span>
+            <span className="text-white font-bold text-2xl">N</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
           <p className="text-gray-600">Sign in to your account to continue</p>
         </div>
 
-        {/* Login Form */}
         <div className="social-card p-8">
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -63,7 +113,7 @@ const Login = () => {
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  type="number"
+                  type="tel"
                   name="phoneNo"
                   value={formData.phoneNo}
                   onChange={handleChange}
@@ -129,14 +179,6 @@ const Login = () => {
                 Sign up
               </Link>
             </p>
-          </div>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800 font-medium mb-2">Demo Credentials:</p>
-            <p className="text-xs text-blue-700">Admin: admin@social.com</p>
-            <p className="text-xs text-blue-700">User: user@social.com</p>
-            <p className="text-xs text-blue-700">Password: any password</p>
           </div>
         </div>
       </div>

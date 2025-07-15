@@ -1,0 +1,11 @@
+mutation RegisterUser($username: String!, $phoneNo: String!, $password: String!) {
+  registerUser(username: $username, phoneNo: $phoneNo, password: $password) {
+    token
+    user {
+      id
+      username
+      phoneNo
+      role
+    }
+  }
+}
