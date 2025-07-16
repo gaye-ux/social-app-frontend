@@ -54,14 +54,18 @@ const Profile = () => {
   };
 
   // Map GraphQL posts to PostCard-compatible format
-  const userPosts = data?.getUserPosts?.map(post => ({
-   ...post,
-    timestamp: new Date(post.createdAt),
-    likes: 0, // Default if not in schema; update query if available
-    comments: post.comments || [],
-    shares: 0, 
-    status: post.status === null ? "approved" : post.status
-  })) || [];
+ const userPosts = React.useMemo(
+  () =>
+    data?.getUserPosts?.map(post => ({
+      ...post,
+      timestamp: new Date(post.createdAt),
+      likes: 0,
+      comments: post.comments || [],
+      shares: 0,
+      status: post.status === null ? "approved" : post.status
+    })) || [],
+  [data?.getUserPosts]
+);
 
   const tabs = [
     { id: 'posts', label: 'Posts', count: userPosts.length },

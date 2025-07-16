@@ -7,7 +7,10 @@ import { Post } from '@/types/graphql'; // optional if you're using types from C
 const Feed = () => {
   const { data, loading, error } = useGetAllPostsQuery();
 
-  const posts = data?.getAllPosts ?? [];
+const posts = (data?.getAllPosts ?? []).slice().sort((a, b) => {
+  // Assuming createdAt is a string (e.g., ISO date) or number (Unix timestamp)
+  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+});
 
   const handleNewPost = (
     newPost: Omit<Post, 'id' | 'timestamp' | 'likes' | 'comments' | 'shares'>

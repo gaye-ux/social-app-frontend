@@ -13,13 +13,18 @@ const TopNavbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const userName = Cookies.get('username') || 'User';
-  const isAuthenticated = Cookies.get('isAuthenticated') === 'true';
+  let isAuthenticated = Cookies.get('isAuthenticated') === 'true';
   const isMobile = useIsMobile();
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/login');
-  };
+   const handleLogout = () => {
+      Cookies.remove('token');
+      Cookies.remove('userId');
+      Cookies.remove('username');
+      Cookies.remove('userPhoneNo');
+      Cookies.remove('userRole');
+      Cookies.remove('isAuthenticated');
+      navigate('/login');
+    };
 
   return (
     <>
