@@ -67,15 +67,25 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                   >
                     <img
                       src={imageUrl}
-                      srcSet={isCompressed ? `${item.url}?w=400 400w, ${item.url}?w=800 800w` : item.url}
-                      sizes={post.media.length === 1 ? '(max-width: 640px) 100vw, 800px' : '(max-width: 640px) 50vw, 400px'}
+                      srcSet={
+                        isCompressed
+                          ? `${item.url}?w=400 400w, ${item.url}?w=800 800w`
+                          : item.url
+                      }
+                      sizes={
+                        post.media.length === 1
+                          ? '(max-width: 640px) 100vw, 800px'
+                          : '(max-width: 640px) 50vw, 400px'
+                      }
                       alt={`Post image ${item.id}`}
-                      className={`w-full ${post.media.length === 1 ? 'h-[450px]' : 'h-64'} object-cover rounded-xl transition-transform duration-300 group-hover:scale-105`}
+                      className={`w-full ${post.media.length === 1 ? 'h-[450px]' : 'h-64'
+                        } object-cover rounded-xl transition-transform duration-300 group-hover:scale-105`}
                       loading="lazy"
                       onError={(e) => (e.currentTarget.src = '/fallback-image.png')}
                     />
                   </button>
                 )}
+
                 {mediaType === 'video' && (
                   <button
                     onClick={() => setSelectedMedia({ url: item.url, type: mediaType })}
@@ -84,7 +94,8 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                   >
                     <video
                       src={item.url}
-                      className={`w-full ${post.media.length === 1 ? 'h-96' : 'h-48'} object-cover rounded-xl`}
+                      className={`w-full ${post.media.length === 1 ? 'h-96' : 'h-48'
+                        } object-cover rounded-xl`}
                       preload="metadata"
                       muted
                     />
@@ -100,14 +111,37 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                     </div>
                   </button>
                 )}
-                {mediaType !== 'image' && mediaType !== 'video' && (
-                  <div
-                    className={`w-full ${post.media.length === 1 ? 'h-96' : 'h-48'} flex items-center justify-center text-gray-500 bg-gray-200 rounded-xl`}
-                    aria-label={`Unsupported media ${item.id}`}
-                  >
-                    Unsupported media type
-                  </div>
-                )}
+
+                {mediaType === 'audio' && (
+  <button
+    onClick={() =>
+      setSelectedMedia({
+        url: item.url,
+        type: 'audio',
+      })
+    }
+    className="w-full h-24 focus:outline-none group bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden relative"
+    aria-label={`Play audio ${item.id}`}
+  >
+    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-80 bg-black bg-opacity-30 transition-opacity duration-300 z-10">
+      <svg
+        className="w-10 h-10 text-white"
+        fill="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path d="M5 3l14 9-14 9V3z" />
+      </svg>
+    </div>
+    <div className="w-full h-full flex items-center px-4 z-0">
+      <audio controls className="w-full">
+        <source src={item.url} type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
+    </div>
+  </button>
+)}
+
               </div>
             );
           })}

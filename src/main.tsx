@@ -18,6 +18,6 @@ const client = new ApolloClient({
 // 👇 Wrap App in ApolloProvider
 createRoot(document.getElementById("root")!).render(
   <ApolloProvider client={client}>
-    <App />
+      <App />
   </ApolloProvider>
 );
