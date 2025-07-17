@@ -2,6 +2,7 @@
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import { API_BASE_URL } from './constants/Constants.tsx';
 
 import {
   ApolloClient,
@@ -11,7 +12,7 @@ import {
 
 // 👇 Apollo Client instance
 const client = new ApolloClient({
-  uri: 'http://localhost:8080/graphql',
+  uri: `${API_BASE_URL}/graphql`,
   cache: new InMemoryCache(),
 });
 

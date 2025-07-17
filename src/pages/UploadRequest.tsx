@@ -1,38 +1,19 @@
-
 import React, { useState } from 'react';
 import { Upload, Image, Video, FileText, Send, CheckCircle, Clock } from 'lucide-react';
-
-interface UploadRequest {
-  id: string;
-  content: string;
-  mediaUrl?: string;
-  mediaType?: 'image' | 'video';
-  status: 'pending' | 'approved' | 'rejected';
-  submittedAt: Date;
-  rejectionReason?: string;
-}
+import { useCreatePostMutation, UploadRequest } from '@/generated/graphql';
+import Cookies from 'js-cookie';
+import { API_BASE_URL } from '@/constants/Constants';
 
 const UploadRequestPage = () => {
   const [content, setContent] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [requests, setRequests] = useState<UploadRequest[]>([
-    {
-      id: '1',
-      content: 'My first post on the platform! Excited to be here.',
-      status: 'approved',
-      submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-    },
-    {
-      id: '2',
-      content: 'Check out this cool project I\'ve been working on.',
-      mediaUrl: '/api/placeholder/400/300',
-      mediaType: 'image',
-      status: 'pending',
-      submittedAt: new Date(Date.now() - 4 * 60 * 60 * 1000)
-    }
-  ]);
+  const [requests, setRequests] = useState<UploadRequest[]>([]);
+  const [createPost] = useCreatePostMutation();
+
+  const userId = Cookies.get("userId");
+  const userName = Cookies.get("username");
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -51,24 +32,62 @@ const UploadRequestPage = () => {
     if (!content.trim()) return;
 
     setIsSubmitting(true);
+    let mediaUrls: string[] = [];
 
-    // Simulate API submission
-    setTimeout(() => {
-      const newRequest: UploadRequest = {
-        id: Date.now().toString(),
-        content: content.trim(),
-        mediaUrl: previewUrl || undefined,
-        mediaType: selectedFile?.type.startsWith('image/') ? 'image' : selectedFile?.type.startsWith('video/') ? 'video' : undefined,
-        status: 'pending',
-        submittedAt: new Date()
-      };
+    try {
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
 
-      setRequests([newRequest, ...requests]);
-      setContent('');
-      setSelectedFile(null);
-      setPreviewUrl(null);
+        if (selectedFile.size > 10 * 1024 * 1024) {    //TO BE IMPLEMENTED LATER TO TAKE FIRST 10MB
+          alert("File is too big. Please upload a file smaller");
+          return;
+        }
+
+        const res = await fetch(`${API_BASE_URL}/api/upload`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) throw new Error('Upload failed');
+
+        const data = await res.json();
+        if (data?.url) {
+          mediaUrls.push(data.url);
+        }
+      }
+
+      const result = await createPost({
+        variables: {
+          userId: userId!, 
+          caption: content.trim(),
+          mediaUrls
+        }
+      });
+
+      if (result.data?.createPost) {
+        const newRequest: UploadRequest = {
+          __typename: 'UploadRequest',
+          id: result.data.createPost.id,
+          requestedAt: new Date().toISOString(),
+          status: result.data.createPost.status || 'pending',
+          user: {
+            id: userId!,
+            username: userName!
+          } as any
+        };
+
+        setRequests([newRequest, ...requests]);
+        setContent('');
+        setSelectedFile(null);
+        setPreviewUrl(null);
+      }
+    } catch (err) {
+      console.error('Error creating post:', err);
+      alert('Failed to create post');
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -106,15 +125,12 @@ const UploadRequestPage = () => {
         <p className="text-gray-600">Submit your content for admin approval before it is approve</p>
       </div>
 
-      {/* Upload Form */}
       <div className="social-card p-6 mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Create New Post</h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Content
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -125,11 +141,8 @@ const UploadRequestPage = () => {
             />
           </div>
 
-          {/* File Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Media (Optional)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Media (Optional)</label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors duration-200">
               <input
                 type="file"
@@ -138,7 +151,7 @@ const UploadRequestPage = () => {
                 className="hidden"
                 id="file-upload"
               />
-              
+
               {!previewUrl ? (
                 <label htmlFor="file-upload" className="cursor-pointer">
                   <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
@@ -192,10 +205,9 @@ const UploadRequestPage = () => {
         </form>
       </div>
 
-      {/* Previous Requests */}
       <div className="social-card p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Submissions</h2>
-        
+
         {requests.length === 0 ? (
           <div className="text-center py-8">
             <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
@@ -207,38 +219,13 @@ const UploadRequestPage = () => {
               <div key={request.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <p className="text-gray-900 mb-2">{request.content}</p>
+                    <p className="text-gray-900 mb-2">Post ID: {request.id}</p>
                     <p className="text-sm text-gray-500">
-                      Submitted {request.submittedAt.toLocaleDateString()} at{' '}
-                      {request.submittedAt.toLocaleTimeString()}
+                      Requested at {new Date(request.requestedAt).toLocaleString()}
                     </p>
                   </div>
                   {getStatusBadge(request.status)}
                 </div>
-                
-                {request.mediaUrl && (
-                  <div className="mb-3">
-                    {request.mediaType === 'image' ? (
-                      <img
-                        src={request.mediaUrl}
-                        alt="Submitted content"
-                        className="max-h-32 rounded object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Video className="w-4 h-4" />
-                        <span>Video attachment</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                {request.status === 'rejected' && request.rejectionReason && (
-                  <div className="bg-red-50 p-3 rounded text-sm text-red-800">
-                    <p className="font-medium">Rejection Reason:</p>
-                    <p>{request.rejectionReason}</p>
-                  </div>
-                )}
               </div>
             ))}
           </div>

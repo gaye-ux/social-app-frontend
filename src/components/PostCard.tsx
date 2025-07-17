@@ -7,6 +7,8 @@ interface PostCardProps {
 }
 
 const PostCard: React.FC<PostCardProps> = ({ post }) => {
+
+  
   const [selectedMedia, setSelectedMedia] = useState<{ url: string; type: string } | null>(null);
 
   const safeDate = (value: string | undefined) => {

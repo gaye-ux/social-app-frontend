@@ -20,10 +20,6 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = Cookies.get('isAuthenticated') === 'true';
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
   return <>{children}</>;
 };
 
@@ -50,20 +46,22 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
+            <Route index element={<Navigate to="/feeds" replace />} />
+
             {/* Public Routes */}
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<Signup />} />
             <Route path="feeds" element={<Feed />} />
 
             {/* Protected Routes */}
-            <Route
+            {/* <Route
               index
               element={
                 <ProtectedRoute>
                   <Feed />
                 </ProtectedRoute>
               }
-            />
+            /> */}
             <Route
               path="profile"
               element={

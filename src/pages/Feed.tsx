@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import PostCreator from '../components/PostCreator';
 import PostCard from '../components/PostCard';
-import { useGetAllPostsQuery } from '@/generated/graphql';
-import { Post } from '@/types/graphql'; // optional if you're using types from Codegen
+import { useGetAllPostsQuery, Post } from '@/generated/graphql';
+
 
 const Feed = () => {
+
   const { data, loading, error } = useGetAllPostsQuery();
 
-const posts = (data?.getAllPosts ?? []).slice().sort((a, b) => {
-  // Assuming createdAt is a string (e.g., ISO date) or number (Unix timestamp)
-  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-});
+  // Memoize the sorted posts to prevent unnecessary re-renders
+  const posts = useMemo(() => {
+    return (data?.getAllPosts ?? [])
+      .slice()
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [data]);
 
   const handleNewPost = (
     newPost: Omit<Post, 'id' | 'timestamp' | 'likes' | 'comments' | 'shares'>

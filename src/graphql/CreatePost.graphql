@@ -1,4 +1,4 @@
-mutation CreatePost($userId: ID!, $caption: String!, $mediaUrls: String){
+mutation CreatePost($userId: ID!, $caption: String!, $mediaUrls: [String]){
     createPost(userId: $userId, caption: $caption, mediaUrls: $mediaUrls) {
         id
         caption
